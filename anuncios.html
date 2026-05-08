@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Pede Aí | Anúncios</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="anuncios.css">
+    <style>
+        :root {
+            --shopee-orange: #ee4d2d;
+            --food-red: #ea1d2c;
+            --used-blue: #0077ff;
+            --soft-bg: #f8f9fa;
+        }
+        
+        .bottom-nav {
+            position: fixed; 
+            bottom: 0; 
+            left: 0; 
+            right: 0;
+            background: white; 
+            display: flex; 
+            justify-content: space-around;
+            align-items: center;
+            padding: 8px 0 calc(env(safe-area-inset-bottom) + 8px);
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.06); 
+            border-top: 1px solid #f0f0f0;
+            z-index: 2000;
+        }
+
+        .nav-item { 
+            color: #888; 
+            border: none; 
+            background: none; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 4px; 
+            font-size: 10px; 
+            font-weight: 600; 
+            flex: 1; 
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .nav-item i { font-size: 20px; }
+        .nav-item.active { color: var(--used-blue); }
+
+        .nav-item-vender {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            cursor: pointer;
+            border: none;
+            background: none;
+        }
+
+        .icon-vender-wrapper {
+            background: #f2f2f7;
+            color: #1c1c1e;
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: transform 0.1s active;
+        }
+
+        .nav-item-vender span {
+            font-size: 10px;
+            font-weight: 700;
+            color: #1c1c1e;
+        }
+
+        .nav-item-vender:active .icon-vender-wrapper {
+            transform: scale(0.9);
+            background: #e5e5ea;
+        }
+
+    </style>
+</head>
+<body class="mode-classifieds">
+
+    <header>
+        <div class="header-top">
+            <span class="logo-container">
+                <i class="fas fa-bullhorn"></i>
+                Pede Aí Anúncios
+            </span>
+        </div>
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="inputBuscaAnuncio" placeholder="O que você procura hoje?">
+        </div>
+    </header>
+
+    <div class="categories-container">
+        <div class="category-item active" onclick="filtrarCategoria('Todos')">
+            <div class="category-icon"><i class="fas fa-th-large"></i></div>
+            <span>Todos</span>
+        </div>
+        <div class="category-item" onclick="filtrarCategoria('Casas')">
+            <div class="category-icon"><i class="fas fa-home"></i></div>
+            <span>Casas</span>
+        </div>
+        <div class="category-item" onclick="filtrarCategoria('Veículos')">
+            <div class="category-icon"><i class="fas fa-car"></i></div>
+            <span>Veículos</span>
+        </div>
+        <div class="category-item" onclick="filtrarCategoria('Eletrônicos')">
+            <div class="category-icon"><i class="fas fa-mobile-alt"></i></div>
+            <span>Eletrônicos</span>
+        </div>
+        <div class="category-item" onclick="filtrarCategoria('Brechó')">
+            <div class="category-icon"><i class="fas fa-tshirt"></i></div>
+            <span>Brechó</span>
+        </div>
+    </div>
+
+    <main class="container">
+        <div id="listaAnuncios" class="grid-container"></div>
+    </main>
+
+    <div id="modalVenda" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Escolha como vender</h3>
+            <div class="modal-option">
+                <div class="option-header">
+                    <span class="option-icon">🤝</span>
+                    <div class="option-info">
+                        <strong>Venda Intermediada</strong>
+                        <span class="price-tag">Taxa 10%</span>
+                    </div>
+                </div>
+                <p>Venda sem pagar nada agora. Você paga apenas 10% após concluir a venda. Nossa equipe faz a intermediação com o comprador para garantir mais segurança.</p>
+                <button class="btn-continuar" onclick="selecionarPlano('intermediado')">Continuar</button>
+            </div>
+            <button class="btn-fechar" onclick="fecharModal()">Cancelar</button>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <button class="nav-item" onclick="irPara('products')">
+            <i class="fas fa-shopping-bag"></i>
+            <span>Produtos</span>
+        </button>
+
+        <button class="nav-item" onclick="irPara('restaurants')">
+            <i class="fas fa-utensils"></i>
+            <span>Gourmet</span>
+        </button>
+
+        <button class="nav-item-vender" onclick="abrirModal()">
+            <div class="icon-vender-wrapper">
+                <i class="fas fa-plus"></i>
+            </div>
+            <span>Vender</span>
+        </button>
+
+        <button class="nav-item active">
+            <i class="fas fa-bullhorn"></i>
+            <span>Anúncios</span>
+        </button>
+    </nav>
+
+    <script src="anuncios.js"></script>
+    <script>
+        function irPara(modo) {
+            sessionStorage.setItem('pedeai_mode', modo);
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

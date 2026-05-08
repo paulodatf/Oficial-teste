@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Vitrine Digital</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --orange: #ee4d2d; --bg: #f5f5f5; --ifood-red: #ea1d2c; --gourmet-dark: #2d2d2d; --bg-img-neutro: #fcfcfc; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; background-color: var(--bg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; overflow-x: hidden; }
+        
+        /* Cabeçalho Compacto */
+        .header-cartao { background: #fff; padding: 10px 15px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 100; }
+        .foto-cartao { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--orange); flex-shrink: 0; }
+        .info-loja-header { flex-grow: 1; text-align: left; overflow: hidden; }
+        .btn-header-lojas { background: #f8f8f8; color: #666 !important; padding: 6px 10px; border-radius: 20px; text-decoration: none; font-size: 10px; font-weight: 700; display: flex; align-items: center; gap: 5px; border: 1px solid #ddd; white-space: nowrap; flex-shrink: 0; }
+        body.gourmet-mode .btn-header-lojas { border-color: #eee; color: var(--ifood-red) !important; }
+        .nome-loja-cartao { margin: 0; font-size: 15px; font-weight: 800; color: #111; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+        .msg-boas-vindas { font-size: 11px; color: #777; margin: 0; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+        .btn-voltar-topo { color: #444; text-decoration: none; font-size: 18px; padding-right: 5px; }
+
+        /* Estilo Gourmet */
+        body.gourmet-mode { background: #fff; }
+        body.gourmet-mode .foto-cartao { border-color: var(--ifood-red); }
+        body.gourmet-mode .nome-loja-cartao { color: var(--ifood-red); }
+
+        /* AJUSTE CIRÚRGICO: Imagem Destaque Modo Produto (Igual ao Index) */
+        .destaque-produto-modo-prod { background: #fff; width: 100%; display: flex; flex-direction: column; }
+        .container-img-padrao { width: 100%; height: 380px; background: var(--bg-img-neutro); display: flex; overflow: hidden; justify-content: center; align-items: center; }
+        .img-padrao-display { width: 100%; height: 100%; object-fit: contain; padding: 10px; }
+        
+        /* Design Descrição Produto */
+        .info-area-prod { padding: 18px; }
+        .info-area-prod h2 { margin: 0 0 8px; font-size: 20px; color: #111; font-weight: 700; }
+        .info-area-prod .preco-destaque { color: var(--orange); font-size: 24px; font-weight: 800; margin-bottom: 12px; }
+        .desc-produto-simples { font-size: 14px; color: #555; line-height: 1.5; margin-bottom: 15px; border-left: 3px solid #eee; padding-left: 12px; }
+
+        /* AJUSTE CIRÚRGICO: Imagem Destaque Modo Gourmet */
+        .container-gourmet-destaque { padding: 20px; background: #fff; }
+        .img-gourmet-destaque { width: 100%; border-radius: 16px; aspect-ratio: 1.2/1; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .titulo-gourmet-destaque { margin: 20px 0 6px; font-size: 22px; color: #2d2d2d; font-weight: 800; letter-spacing: -0.5px; }
+        .preco-gourmet-destaque { color: var(--ifood-red); font-size: 24px; font-weight: 800; margin-bottom: 12px; }
+        .card-desc-gourmet { background: #fffcf5; border: 1px solid #f9ebd1; padding: 15px; border-radius: 12px; margin-bottom: 20px; position: relative; }
+        .card-desc-gourmet i { color: #d4a373; font-size: 12px; margin-bottom: 5px; display: block; }
+        .texto-desc-gourmet { color: #4a4a4a; font-size: 14px; font-style: italic; line-height: 1.6; margin: 0; }
+
+        /* AJUSTE CIRÚRGICO: Grid de Produtos Secundários (Igual ao Index) */
+        .grid-produtos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 10px; }
+        .card-p { background: #fff; border-radius: 8px; overflow: hidden; border: 1px solid #eee; cursor: pointer; display: flex; flex-direction: column; }
+        .card-p img { width: 100%; aspect-ratio: 1/1; object-fit: contain; background: var(--bg-img-neutro); padding: 5px; }
+        .card-p-info { padding: 8px; flex-grow: 1; }
+        .card-p-name { font-size: 12px; font-weight: 600; color: #333; height: 32px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.3; }
+        .card-p-price { color: var(--orange); font-weight: 800; font-size: 14px; margin-top: 4px; }
+        body.gourmet-mode .card-p-price { color: var(--ifood-red); }
+
+        /* Botão Montar */
+        #barMontar { position: fixed; bottom: 20px; left: 0; width: 100%; padding: 0 15px; display: none; justify-content: center; z-index: 999; }
+        .btn-montar-global { width: 100%; max-width: 400px; background: var(--ifood-red); color: #fff; border: none; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 15px rgba(234, 29, 44, 0.4); text-transform: uppercase; }
+
+        /* Utilitários */
+        .tamanho-container { padding: 5px 0 15px 0; }
+        .tamanho-grid { display: flex; gap: 8px; margin-top: 8px; }
+        .btn-tamanho { border: 1px solid #ddd; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; }
+        .btn-tamanho.selected { background: var(--orange); color: #fff; border-color: var(--orange); }
+        .btn-action-main { width: 100%; padding: 16px; border-radius: 12px; border: none; color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; text-transform: uppercase; transition: transform 0.1s; }
+        .btn-action-main:active { transform: scale(0.98); }
+        /* Ajuste de Botões Lado a Lado */
+        .container-botoes-gourmet { display: flex; gap: 10px; margin-top: 15px; width: 100%; }
+        .container-botoes-gourmet .btn-action-main { flex: 1; padding: 12px 5px; font-size: 13px; margin: 0 !important; }
+        .btn-montar-inline { background: #555 !important; display: flex; align-items: center; justify-content: center; gap: 5px; }
+    </style>
+</head>
+<body class="vitrine-cartao-page">
+
+    <header class="header-cartao">
+        <a href="javascript:history.back()" class="btn-voltar-topo"><i class="fas fa-chevron-left"></i></a>
+        <img id="fotoLojista" src="" class="foto-cartao" alt="Logo">
+        <div class="info-loja-header">
+            <h1 id="nomeLojista" class="nome-loja-cartao"></h1>
+            <p id="msgBoasVindas" class="msg-boas-vindas"></p>
+        </div>
+        <a href="index.html" class="btn-header-lojas">
+            <i class="fas fa-store"></i> Ver outras lojas
+        </a>
+    </header>    
+
+    <main id="productDetail"></main>
+
+    <div id="overlayComida" onclick="window.fecharModalComida()" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10500; display:none;"></div>
+    <div id="modalComida" style="position:fixed; bottom:-100%; left:0; width:100%; background:#fff; z-index:11000; transition:0.4s; border-radius:20px 20px 0 0; max-height:90vh; overflow-y:auto;">
+        <div style="padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; background:#fff; z-index:10;">
+            <h3 id="modalNome" style="margin:0; font-size:18px;">Personalizar</h3>
+            <i class="fas fa-times" onclick="window.fecharModalComida()" style="cursor:pointer; font-size:20px;"></i>
+        </div>
+        <div id="modalContent"></div>
+        
+        <div id="container-desc-modal" style="padding: 10px 15px; background: #fffcf5; margin: 10px 15px; border-radius: 8px; border: 1px dashed #f39c12;">
+            <h4 style="margin: 0 0 5px 0; color: #e67e22; font-size: 13px; display: flex; align-items: center; gap: 5px;">
+                <i class="fas fa-utensils"></i> Ingredientes / Detalhes:
+            </h4>
+            <p id="texto-descricao-gourmet" style="margin: 0; font-size: 13px; color: #555; font-style: italic; line-height: 1.4;"></p>
+        </div>
+
+        <div style="padding:15px;">
+            <textarea id="gourmet-obs" placeholder="Alguma observação? (Ex: tirar cebola)" style="width:100%; height:60px; padding:10px; border-radius:8px; border:1px solid #ddd; font-family:inherit; font-size:13px; resize:none;"></textarea>
+            <button id="btnConfirmarConfig" class="btn-action-main" style="background:var(--ifood-red); margin-top:10px;">Confirmar</button>
+        </div>
+    </div>
+
+    <script src="./carrinho.js"></script>
+    <script type="module" src="./vitrine-cartao.js"></script>
+    <script>
+        window.fecharModalComida = () => {
+            document.getElementById('modalComida').style.bottom = '-100%';
+            document.getElementById('overlayComida').style.display = 'none';
+        };
+        window.selecionarTamanho = (btn, tamanho) => {
+            const container = btn.parentElement;
+            container.querySelectorAll('.btn-tamanho').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            window.tamanhoSelecionadoAtual = tamanho;
+        };
+    </script>
+</body>
+</html>

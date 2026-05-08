@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Detalhes do Anúncio | Pede Aí</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --used-blue: #0077ff;
+            --danger: #ff3b30;
+            --bg-soft: #f2f2f7;
+            --text-main: #1c1c1e;
+            --text-secondary: #8e8e93;
+        }
+
+        * { margin: 0; padding: 0; box-box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: white; color: var(--text-main); padding-bottom: 100px; }
+
+        /* Header Navegação */
+        .header-nav {
+            position: sticky; top: 0; background: white; z-index: 100;
+            display: flex; align-items: center; padding: 15px;
+            box-shadow: 0 1px 0 rgba(0,0,0,0.05);
+        }
+        .back-btn { border: none; background: none; font-size: 20px; cursor: pointer; color: var(--used-blue); }
+
+        /* Galeria / Imagem */
+        .main-image-container {
+            width: 100%; aspect-ratio: 1/1; background: var(--bg-soft);
+            display: flex; align-items: center; justify-content: center; overflow: hidden;
+        }
+        .main-image { width: 100%; height: 100%; object-fit: cover; }
+        .no-image { color: var(--text-secondary); text-align: center; }
+
+        /* Conteúdo */
+        .content { padding: 20px; }
+        .price { font-size: 28px; font-weight: 800; color: var(--text-main); margin-bottom: 8px; }
+        .title { font-size: 20px; font-weight: 600; line-height: 1.3; margin-bottom: 15px; }
+        
+        .divider { height: 1px; background: var(--bg-soft); margin: 20px 0; }
+        
+        .section-title { font-size: 14px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 10px; }
+        .description { font-size: 16px; line-height: 1.6; color: #444; white-space: pre-line; }
+
+        /* Rodapé Fixo com Botão */
+        .footer-action {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            padding: 15px 20px calc(env(safe-area-inset-bottom) + 15px);
+            background: white; border-top: 1px solid var(--bg-soft);
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .btn-whatsapp {
+            background: #25D366; color: white; text-decoration: none;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            height: 55px; border-radius: 12px; font-weight: 700; font-size: 16px;
+        }
+
+        .btn-report {
+            background: none; border: none; color: var(--text-secondary);
+            font-size: 12px; font-weight: 500; cursor: pointer;
+            align-self: center; margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-nav">
+        <button class="back-btn" onclick="history.back()">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <span style="margin-left: 15px; font-weight: 600;">Detalhes</span>
+    </div>
+
+    <div id="detalheAnuncio">
+        </div>
+
+    <div class="footer-action">
+        <a id="linkWhatsapp" href="#" target="_blank" class="btn-whatsapp">
+            <i class="fab fa-whatsapp"></i> Falar com vendedor
+        </a>
+        <button id="btnDenunciar" class="btn-report">
+            <i class="fas fa-flag"></i> Denunciar este anúncio
+        </button>
+    </div>
+
+    <script>
+        const WHATSAPP_ADMIN = "5599999999999"; // Mantenha igual ao seu anuncios.js
+
+        function carregarDetalhes() {
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get("id");
+            const anuncios = JSON.parse(localStorage.getItem('pedeai_anuncios') || '[]');
+            
+            const anuncio = anuncios.find(a => a.id == id);
+
+            if (!anuncio) {
+                document.getElementById('detalheAnuncio').innerHTML = `<p style="padding:20px; text-align:center;">Anúncio não encontrado.</p>`;
+                return;
+            }
+
+            // Formatação de Preço
+            const precoExibicao = (anuncio.categoria === 'Empregos' || anuncio.categoria === 'Serviços') && (!anuncio.preco || anuncio.preco == 0) 
+                ? "Combinar" 
+                : `R$ ${parseFloat(anuncio.preco || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+
+            // Template do Conteúdo
+            const html = `
+                <div class="main-image-container">
+                    ${anuncio.foto ? `<img src="${anuncio.foto}" class="main-image">` : `
+                        <div class="no-image"><i class="fas fa-image fa-3x"></i><br>Sem imagem</div>
+                    `}
+                </div>
+                <div class="content">
+                    <div class="price">${precoExibicao}</div>
+                    <h1 class="title">${anuncio.titulo}</h1>
+                    <div class="divider"></div>
+                    <div class="section-title">Descrição</div>
+                    <div class="description">${anuncio.descricao || 'Sem descrição detalhada.'}</div>
+                    <div class="divider"></div>
+                    <div style="font-size: 12px; color: var(--text-secondary);">
+                        ID do anúncio: ${anuncio.id}<br>
+                        Categoria: ${anuncio.categoria}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('detalheAnuncio').innerHTML = html;
+
+            // Configurar Botão Whatsapp
+            const msg = encodeURIComponent(`Olá, tenho interesse no anúncio: ${anuncio.titulo} (ID: ${anuncio.id})`);
+            document.getElementById('linkWhatsapp').href = `https://wa.me/${WHATSAPP_ADMIN}?text=${msg}`;
+
+            // Configurar Denúncia
+            document.getElementById('btnDenunciar').onclick = () => {
+                const msgDenuncia = encodeURIComponent(`Gostaria de denunciar o anúncio: ${anuncio.titulo} (ID: ${anuncio.id})`);
+                window.open(`https://wa.me/${WHATSAPP_ADMIN}?text=${msgDenuncia}`, '_blank');
+            };
+        }
+
+        document.addEventListener('DOMContentLoaded', carregarDetalhes);
+    </script>
+</body>
+</html>
