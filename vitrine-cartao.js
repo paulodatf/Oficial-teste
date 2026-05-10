@@ -98,7 +98,7 @@ async function carregarDadosEProdutos() {
                                 <p class="texto-desc-gourmet">${p.descricao || 'Sem descrição disponível.'}</p>
                             </div>
                             <div class="container-botoes-gourmet">
-                              <button onclick="window.tratarBotaoAdicionar('${d.id}', '${nomeReal}', '${p.preco}', '${p.owner}', '${p.whatsapp}', '${otimizarURL(fotos[0], 100)}', '${gerarLinkDestaque(d.id)}', '${descReal}')" class="btn-action-main" style="background:var(--ifood-red);">ADICIONAR</button>
+                              <button onclick="window.tratarBotaoAdicionar('${d.id}', '${nomeReal}', '${p.preco}', '${p.owner}', lojistaInfoCache?.whatsapp || '${p.whatsapp}', '${otimizarURL(fotos[0], 100)}', '${gerarLinkDestaque(d.id)}', '${descReal}')" class="btn-action-main" style="background:var(--ifood-red);">ADICIONAR</button>
 ${lojistaInfoCache.montarAtivo && p.permiteMontar === true ? `<button onclick="window.abrirConfigComida('montar_global', true)" class="btn-action-main btn-montar-inline"><i class="fas fa-utensils"></i> MONTAR</button>` : ''}
                             </div>
                         </div><hr style="border:0; border-top:8px solid #f8f8f8; margin:0;">`;

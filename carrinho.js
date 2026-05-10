@@ -14,12 +14,16 @@ window.adicionarAoCarrinho = (id, nome, preco, owner, whatsapp, imagem, linkProd
     // REGRA: Captura a descrição real. Se vier "undefined" ou nulo, fica vazio (string limpa).
     let descricaoFinal = (descricao && descricao !== "undefined") ? descricao : "";
 
+    // REGRA: Se houver um WhatsApp na URL (mais atualizado), usamos ele. Caso contrário, usa o parâmetro.
+    const urlParams = new URLSearchParams(window.location.search);
+    const whatsappAtual = urlParams.get('whatsapp') || whatsapp;
+
     const item = { 
         id, 
         nome, 
         preco, 
         owner, 
-        whatsapp, 
+        whatsapp: whatsappAtual, 
         imagem, 
         linkProduto: linkFinal, 
         descricao: descricaoFinal, 
@@ -73,9 +77,12 @@ window.finalizarGrupoLojista = (ownerId) => {
     const itensLoja = carrinho.filter(i => i.owner === ownerId);
     if (itensLoja.length === 0) return;
 
-    // Removemos o async/await para garantir que o Safari iOS não bloqueie o redirecionamento.
-    // Usamos o WhatsApp já armazenado no item para ação imediata.
-    let foneFinal = itensLoja[0].whatsapp.replace(/\D/g, '');
+    // Prioridade absoluta: Pega o WhatsApp da URL atual para garantir que mudanças no painel reflitam na hora
+    const urlParams = new URLSearchParams(window.location.search);
+    let foneFinal = urlParams.get('whatsapp') || itensLoja[0].whatsapp;
+    
+    // Limpa caracteres não numéricos
+    foneFinal = foneFinal.replace(/\D/g, '');
 
     let texto = `📌 *NOVO PEDIDO RECEBIDO*\n`;
     texto += `────────────────────\n\n`;
