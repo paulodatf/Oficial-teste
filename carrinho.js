@@ -1,3 +1,6 @@
+import { db } from './config.js';
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
 const STORAGE_KEY = 'carrinho_pedeai';
 
 // 1. ADICIONAR AO CARRINHO (Ajustado para integridade total da descrição real)
@@ -68,14 +71,38 @@ window.removerDoCarrinho = (id) => {
 };
 
 // 4. FINALIZAR PEDIDO (ENVIO PARA WHATSAPP - FORMATO ATUALIZADO)
-window.finalizarGrupoLojista = (ownerId) => {
+window.finalizarGrupoLojista = async (ownerId) => {
     let carrinho = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
     const itensLoja = carrinho.filter(i => i.owner === ownerId);
     if (itensLoja.length === 0) return;
 
     // Removemos o async/await para garantir que o Safari iOS não bloqueie o redirecionamento.
     // Usamos o WhatsApp já armazenado no item para ação imediata.
-    let foneFinal = itensLoja[0].whatsapp.replace(/\D/g, '');
+    let foneFinal = '';
+
+try {
+    const userRef = doc(db, "usuarios", ownerId);
+    const userSnap = await getDoc(userRef);
+
+    if (userSnap.exists()) {
+        const userData = userSnap.data();
+
+        if (userData.whatsapp) {
+            foneFinal = userData.whatsapp.replace(/\D/g, '');
+        }
+    }
+
+    // Segurança: fallback caso não encontre no Firestore
+    if (!foneFinal) {
+        foneFinal = itensLoja[0].whatsapp.replace(/\D/g, '');
+    }
+
+} catch (error) {
+    console.error("Erro ao buscar WhatsApp atualizado:", error);
+
+    // fallback de segurança
+    foneFinal = itensLoja[0].whatsapp.replace(/\D/g, '');
+}
 
 // Remove duplicações de 55 no início
 while (foneFinal.startsWith('5555')) {
