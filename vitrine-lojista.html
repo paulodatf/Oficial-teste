@@ -112,13 +112,18 @@
         </div>
     </div>
 
-    <script src="./carrinho.js"></script>
     <script type="module">
-        import { carregarVitrineCompleta } from './vitrine.js';
-        const params = new URLSearchParams(window.location.search);
-        if(params.get('modo') === 'gourmet') document.body.classList.add('gourmet-mode');
-        carregarVitrineCompleta();
-    </script>
+    import './carrinho.js';
+    import { carregarVitrineCompleta } from './vitrine.js';
+
+    const params = new URLSearchParams(window.location.search);
+
+    if(params.get('modo') === 'gourmet') {
+        document.body.classList.add('gourmet-mode');
+    }
+
+    carregarVitrineCompleta();
+</script>
 
     <script>
         function fecharModalComida() {
