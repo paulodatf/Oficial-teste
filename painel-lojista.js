@@ -235,14 +235,13 @@ window.togglePainelPerfil = () => {
     if (modal.style.display === 'none' || modal.style.display === '') {
         modal.style.display = 'flex';
         // Carrega o WhatsApp atual no input quando abre
-        // Carrega o WhatsApp removendo o +55 para exibição limpa
-if (userData && userData.whatsapp) {
-    let numLimpo = userData.whatsapp.replace(/\D/g, '');
-    // Se começar com 55 e tiver o tamanho de um número completo, remove o 55
-    if (numLimpo.startsWith('55') && numLimpo.length > 10) {
-        numLimpo = numLimpo.substring(2);
+        if (userData && userData.whatsapp) {
+    // Remove o 55 inicial apenas para exibição no input, se ele existir
+    let whatsExibicao = userData.whatsapp.replace(/\D/g, '');
+    if (whatsExibicao.startsWith('55')) {
+        whatsExibicao = whatsExibicao.substring(2);
     }
-    document.getElementById('inputWhatsLoja').value = numLimpo;
+    document.getElementById('inputWhatsLoja').value = whatsExibicao;
 }
     } else {
         modal.style.display = 'none';
@@ -259,15 +258,12 @@ document.getElementById('btnSalvarPerfilGeral').onclick = async () => {
     
     btn.innerText = "Salvando...";
     try {
-   // Formatação inteligente: remove tudo e adiciona o +55 uma única vez
-let apenasNumeros = novoWhats.replace(/\D/g, '');
-
-// Se o lojista digitou o 55 por hábito, removemos para não duplicar no passo seguinte
-if (apenasNumeros.startsWith('55') && apenasNumeros.length > 10) {
-    apenasNumeros = apenasNumeros.substring(2);
-}
-
-const numeroFormatado = '+55' + apenasNumeros;
+  // Remove tudo que não é número
+const apenasNumeros = novoWhats.replace(/\D/g, '');
+// Se o usuário digitou o 55, usamos como está. Se não, adicionamos.
+const numeroFormatado = apenasNumeros.startsWith('55') 
+    ? '+' + apenasNumeros 
+    : '+55' + apenasNumeros;
 
         const updateData = {
             whatsapp: numeroFormatado // Este é o campo mestre que o carrinho vai ler

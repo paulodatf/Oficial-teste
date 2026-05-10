@@ -77,6 +77,16 @@ window.finalizarGrupoLojista = (ownerId) => {
     // Usamos o WhatsApp já armazenado no item para ação imediata.
     let foneFinal = itensLoja[0].whatsapp.replace(/\D/g, '');
 
+// Remove duplicações de 55 no início
+while (foneFinal.startsWith('5555')) {
+    foneFinal = foneFinal.substring(2);
+}
+
+// Se não tiver 55, adiciona automaticamente
+if (!foneFinal.startsWith('55')) {
+    foneFinal = '55' + foneFinal;
+}
+
     let texto = `📌 *NOVO PEDIDO RECEBIDO*\n`;
     texto += `────────────────────\n\n`;
     
@@ -115,7 +125,7 @@ window.finalizarGrupoLojista = (ownerId) => {
     window.atualizarIconeCarrinho();
     window.abrirModalCarrinho();
     
-    const urlFinal = `https://wa.me/55${foneFinal}?text=${encodeURIComponent(texto)}`;
+    const urlFinal = `https://wa.me/${foneFinal}?text=${encodeURIComponent(texto)}`;
     
     // No Safari iOS, window.location.assign é mais confiável para deep-links (WhatsApp) após o primeiro uso.
     window.location.assign(urlFinal);
