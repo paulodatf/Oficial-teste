@@ -106,7 +106,6 @@ function atualizarUIPerfil() {
         preview.style.display = 'none';
     }
 }
-
 async function verificarStatus() {
     try {
         const docRef = doc(db, "usuarios", userId);
@@ -155,36 +154,36 @@ async function verificarStatus() {
                 aplicarRegrasDePlanoNaInterface();
             }
 
-            // Se for Plano Básico, verificamos se ele já tem um tema definido
-            if (userData.planoAtivo === 'basico' || !userData.planoAtivo) {
-                if (!userData.temaEscolhido) {
-                    // Se não escolheu, forçamos a escolha antes de mostrar qualquer coisa
-                    escolherTemaInicial(); 
-                    return; 
-                }
-                // Esconde o seletor (ele não pode trocar)
-                document.getElementById('seletorContexto').style.display = 'none';
-                
-                // AJUSTE AQUI: Forçamos o contexto e atualizamos o texto do botão de publicação imediatamente
-                contextoAtual = userData.temaEscolhido;
-                window.trocarContexto(contextoAtual);
-                
-                // Garante que o texto do botão "Publicar Novo em..." reflita o tema salvo
-                const txtBtn = document.getElementById('txtBtnPublicarContexto');
-                if(txtBtn) txtBtn.innerText = contextoAtual.toUpperCase();
+   // Se for Plano Básico, verificamos se ele já tem um tema definido
+if (userData.planoAtivo === 'basico' || !userData.planoAtivo) {
+    if (!userData.temaEscolhido) {
+        // Se não escolheu, forçamos a escolha antes de mostrar qualquer coisa
+        escolherTemaInicial(); 
+        return; 
+    }
+    // Esconde o seletor (ele não pode trocar)
+    document.getElementById('seletorContexto').style.display = 'none';
+    
+    // AJUSTE AQUI: Forçamos o contexto e atualizamos o texto do botão de publicação imediatamente
+    contextoAtual = userData.temaEscolhido;
+    window.trocarContexto(contextoAtual);
+    
+    // Garante que o texto do botão "Publicar Novo em..." reflita o tema salvo
+    const txtBtn = document.getElementById('txtBtnPublicarContexto');
+    if(txtBtn) txtBtn.innerText = contextoAtual.toUpperCase();
 
-                // CORREÇÃO DE CONTEXTO: Força o formulário a carregar os campos do setor escolhido
-                const selectCat = document.getElementById('pCategoria');
-                if(selectCat) {
-                    selectCat.value = contextoAtual;
-                    if (window.toggleFormFields) window.toggleFormFields();
-                }
+    // CORREÇÃO DE CONTEXTO: Força o formulário a carregar os campos do setor escolhido
+    const selectCat = document.getElementById('pCategoria');
+    if(selectCat) {
+        selectCat.value = contextoAtual;
+        if (window.toggleFormFields) window.toggleFormFields();
+    }
 
-            } else {
-                // Premium/VIP continuam vendo o seletor normal
-                document.getElementById('seletorContexto').style.display = 'block';
-                window.trocarContexto('Geral');
-            }
+} else {
+    // Premium/VIP continuam vendo o seletor normal
+    document.getElementById('seletorContexto').style.display = 'block';
+    window.trocarContexto('Geral');
+}
 
             if(userData.montarAtivo) {
                 document.getElementById('checkMontarGlobal').checked = true;
@@ -236,15 +235,21 @@ window.togglePainelPerfil = () => {
     if (modal.style.display === 'none' || modal.style.display === '') {
         modal.style.display = 'flex';
         // Carrega o WhatsApp atual no input quando abre
-        if (userData && userData.whatsapp) {
-            document.getElementById('inputWhatsLoja').value = userData.whatsapp.replace(/\D/g, '');
-        }
+        // Carrega o WhatsApp removendo o +55 para exibição limpa
+if (userData && userData.whatsapp) {
+    let numLimpo = userData.whatsapp.replace(/\D/g, '');
+    // Se começar com 55 e tiver o tamanho de um número completo, remove o 55
+    if (numLimpo.startsWith('55') && numLimpo.length > 10) {
+        numLimpo = numLimpo.substring(2);
+    }
+    document.getElementById('inputWhatsLoja').value = numLimpo;
+}
     } else {
         modal.style.display = 'none';
     }
 };
 
-// ✅ CORREÇÃO CRÍTICA: Salvar Nome e WhatsApp
+// Salvar Nome e WhatsApp
 document.getElementById('btnSalvarPerfilGeral').onclick = async () => {
     const novoNome = document.getElementById('inputNomeLoja').value;
     const novoWhats = document.getElementById('inputWhatsLoja').value;
@@ -254,30 +259,19 @@ document.getElementById('btnSalvarPerfilGeral').onclick = async () => {
     
     btn.innerText = "Salvando...";
     try {
-        // Garante que o número salvo tenha o +55, igualzinho no cadastro inicial
-     // --- INÍCIO DA NORMALIZAÇÃO INTELIGENTE ---
-        // 1. Remove absolutamente tudo que não for número
-        let apenasNumeros = novoWhats.replace(/\D/g, '');
+   // Formatação inteligente: remove tudo e adiciona o +55 uma única vez
+let apenasNumeros = novoWhats.replace(/\D/g, '');
 
-        // 2. Se o usuário digitou com o 0 na frente (ex: 066...), remove o zero
-        if (apenasNumeros.startsWith('0')) {
-            apenasNumeros = apenasNumeros.substring(1);
-        }
+// Se o lojista digitou o 55 por hábito, removemos para não duplicar no passo seguinte
+if (apenasNumeros.startsWith('55') && apenasNumeros.length > 10) {
+    apenasNumeros = apenasNumeros.substring(2);
+}
 
-        // 3. Verifica se o número já tem o 55 no início. 
-        // Se NÃO tiver, adiciona. Se JÁ tiver, mantém como está.
-        const numeroFinal = apenasNumeros.startsWith('55') 
-            ? apenasNumeros 
-            : '55' + apenasNumeros;
-
-        // 4. Adiciona o '+' apenas para exibição/padrão internacional se desejar, 
-        // mas o foco é o padrão 5566999999999 para o Firebase
-        const numeroFormatado = '+' + numeroFinal; 
+const numeroFormatado = '+55' + apenasNumeros;
 
         const updateData = {
-            whatsapp: numeroFormatado 
+            whatsapp: numeroFormatado // Este é o campo mestre que o carrinho vai ler
         };
-        // --- FIM DA NORMALIZAÇÃO ---
 
         if(userData.planoAtivo === 'premium' || userData.planoAtivo === 'vip') {
             const campo = contextoAtual === 'Comida' ? 'nomeLojaComida' : 'nomeLojaGeral';
@@ -290,8 +284,8 @@ document.getElementById('btnSalvarPerfilGeral').onclick = async () => {
 
         await updateDoc(doc(db, "usuarios", userId), updateData);
         
-        // ✅ CORREÇÃO DO BUG: Atualiza o cache local COM o formato correto
-        userData.whatsapp = numeroFormatado; // ← AQUI ESTAVA O BUG (linha 132 original)
+        // Atualiza localmente
+        userData.whatsapp = novoWhats;
         
         atualizarUIPerfil();
         alert("Perfil atualizado com sucesso!");
@@ -449,7 +443,7 @@ window.togglePromo = async (id, statusAtual) => {
     if(!statusAtual) {
         const q = query(collection(db, "produtos"), where("owner", "==", userId), where("promocao", "==", "sim"));
         const snap = await getDocs(q);
-        if(snap.size >= 6) return window.abrirModalLimite();
+    if(snap.size >= 6) return window.abrirModalLimite();
     }
     try {
         await updateDoc(doc(db, "produtos", id), { 
@@ -466,7 +460,7 @@ window.toggleTurbo = async (id, statusAtual) => {
         const limites = { 'basico': 1, 'premium': 3, 'vip': 5 };
         const q = query(collection(db, "produtos"), where("owner", "==", userId), where("turbo", "==", "sim"));
         const snap = await getDocs(q);
-        if(snap.size >= limites[plano]) return window.abrirModalLimite();
+if(snap.size >= limites[plano]) return window.abrirModalLimite();
     }
     try {
         await updateDoc(doc(db, "produtos", id), { turbo: statusAtual ? "nao" : "sim" });
@@ -569,7 +563,6 @@ window.gerarLinkCartaoVisita = function(modo) {
     console.log("Link Gerado:", linkFinal);
     return linkFinal;
 };
-
 // Função para gerar e exibir o link na interface
 window.prepararLink = function(modo) {
     // AJUSTE: Se for plano básico, força o modo correto independente do clique
@@ -663,7 +656,6 @@ window.gerarLinkCartaoVisita = function(modo) {
     const urlBase = window.location.origin + window.location.pathname.replace('painel-lojista.html', 'vitrine-cartao.html');
     return `${urlBase}?lojista=${userId}&modo=${modo}`;
 };
-
 // AJUSTE CIRÚRGICO: Função de Suporte Global via Firebase
 window.abrirSuporteDinamico = async function() {
     const mensagem = encodeURIComponent("Olá! Preciso de ajuda com meu painel.");
@@ -681,7 +673,6 @@ window.abrirSuporteDinamico = async function() {
     // No iOS Safari, window.location.href é mais confiável que window.open dentro de async
     window.location.href = url;
 };
-
 async function escolherTemaInicial() {
     // Cria um fundo branco por cima de tudo para a escolha
     const overlay = document.createElement('div');
@@ -705,7 +696,6 @@ async function escolherTemaInicial() {
         }
     };
 }
-
 // FUNÇÃO ADICIONADA: Solicitar Exclusão via Firestore
 window.solicitarExclusaoContaNova = async () => {
     const confirmar = confirm("Tem certeza que deseja solicitar a exclusão da sua conta? Esta ação enviará um pedido ao administrador.");
