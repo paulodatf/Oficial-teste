@@ -12,7 +12,7 @@ window.onpopstate = function () {
 const userId = localStorage.getItem('userId');
 
 if (!userId) {
-    window.location.replace('login.html');
+    window.location.replace('index.html');
 }
 
 let userData = null;
@@ -556,12 +556,8 @@ document.getElementById('btn-salvar').onclick = async () => {
 window.excluirProd = async (id) => { if(confirm("Excluir item?")) { await deleteDoc(doc(db, "produtos", id)); carregarProdutos(); } };
 document.getElementById('btnSair').onclick = () => {
     localStorage.clear();
-
-    // Limpa histórico da página
-    window.history.replaceState(null, null, 'login.html');
-
-    // Redireciona sem permitir voltar
-    window.location.replace('login.html');
+    window.history.replaceState(null, null, 'index.html');
+    window.location.replace('index.html');
 };
 
 verificarStatus();

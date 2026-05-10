@@ -86,6 +86,22 @@ Ao continuar, você concorda com nossos<br>
 </script>
 </div>
 
+ <script>
+// LIMPA O HISTÓRICO DO LOGIN
+if (window.history.replaceState) {
+    window.history.replaceState(null, null, window.location.href);
+}
+
+// AO VOLTAR, VAI PARA INDEX
+window.addEventListener('pageshow', function (event) {
+    const userId = localStorage.getItem('userId');
+
+    if (!userId && event.persisted) {
+        window.location.replace('index.html');
+    }
+});
+</script>   
+    
 <script type="module">
     import { realizarLogin } from './login.js';
     
