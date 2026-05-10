@@ -113,7 +113,7 @@ const temConfig = p.categoria === 'Comida';
                     const nome = '${nomeSanitizado}';
                     const preco = '${p.preco}';
                     const owner = '${p.owner}';
-                    const whatsapp = lojistaInfoCache?.whatsapp || '${p.whatsapp}';
+                    const whatsapp = '${p.whatsapp}';
                     const imagem = '${imgCapaRaw}';
                     const link = '${linkProduto}';
                     const tipo = '${p.tipoProduto || ""}';
@@ -131,7 +131,7 @@ const temConfig = p.categoria === 'Comida';
                 })()
             `;
 
-            const funcAddDiretoSimples = `window.adicionarAoCarrinho('${d.id}', '${nomeSanitizado}', '${p.preco}', '${p.owner}', lojistaInfoCache?.whatsapp || '${p.whatsapp}', '${imgCapaRaw}', '${linkProduto}', '${descSanitizada}')`;
+            const funcAddDiretoSimples = `window.adicionarAoCarrinho('${d.id}', '${nomeSanitizado}', '${p.preco}', '${p.owner}', '${p.whatsapp}', '${imgCapaRaw}', '${linkProduto}', '${descSanitizada}')`;
             const adicionaisProduto = (p.adicionais && p.adicionais.length > 0) ? p.adicionais : [];
 const adicionaisKey = `adic_${d.id}`;
 window[adicionaisKey] = adicionaisProduto;
