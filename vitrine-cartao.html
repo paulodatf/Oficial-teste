@@ -108,8 +108,12 @@
         </div>
     </div>
 
-    <script src="./carrinho.js"></script>
-    <script type="module" src="./vitrine-cartao.js"></script>
+    <script type="module">
+    import './carrinho.js';
+    import './vitrine-cartao.js';
+</script>
+
+<script>
     <script>
         window.fecharModalComida = () => {
             document.getElementById('modalComida').style.bottom = '-100%';
