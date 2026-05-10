@@ -2,8 +2,18 @@
 import { db, GetRegrasLojista } from './config.js'; 
 import { collection, addDoc, getDocs, getDoc, query, where, deleteDoc, doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+// BLOQUEIO DE CACHE DO PAINEL
+window.history.pushState(null, null, window.location.href);
+window.onpopstate = function () {
+    window.history.go(1);
+};
+
+// VERIFICA LOGIN
 const userId = localStorage.getItem('userId');
-if (!userId) window.location.href = 'login.html';
+
+if (!userId) {
+    window.location.replace('login.html');
+}
 
 let userData = null;
 let categoriaFixaPlanoBasico = null;
@@ -544,7 +554,15 @@ document.getElementById('btn-salvar').onclick = async () => {
 };
 
 window.excluirProd = async (id) => { if(confirm("Excluir item?")) { await deleteDoc(doc(db, "produtos", id)); carregarProdutos(); } };
-document.getElementById('btnSair').onclick = () => { localStorage.clear(); window.location.href = 'login.html'; };
+document.getElementById('btnSair').onclick = () => {
+    localStorage.clear();
+
+    // Limpa histórico da página
+    window.history.replaceState(null, null, 'login.html');
+
+    // Redireciona sem permitir voltar
+    window.location.replace('login.html');
+};
 
 verificarStatus();
 
