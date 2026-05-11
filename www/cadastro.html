@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro | Pede Aí</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --primary-orange: #ee4d2d; --ai-green: #27ae60; --white: #ffffff; }
+        body, html { margin: 0; padding: 0; min-height: 100%; font-family: 'Segoe UI', sans-serif; background-color: var(--primary-orange); color: var(--white); }
+        .wrapper { display: flex; flex-direction: column; align-items: center; padding: 50px 30px; text-align: center; box-sizing: border-box; }
+        
+        .logo-text { font-size: 38px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 5px; }
+        .ai-badge { background-color: var(--ai-green); color: var(--white); padding: 1px 10px; border-radius: 50px; font-size: 26px; font-style: italic; }
+        .slogan { font-size: 14px; font-weight: 300; opacity: 0.9; margin-bottom: 30px; }
+
+        .card { width: 100%; max-width: 320px; }
+        input { width: 100%; background: transparent; border: none; border-bottom: 1px solid rgba(255,255,255,0.6); padding: 12px 0; margin-bottom: 15px; color: var(--white); font-size: 16px; text-align: center; outline: none; }
+        input::placeholder { color: rgba(255,255,255,0.7); }
+        
+        .whatsapp-input-container { position: relative; display: flex; align-items: center; justify-content: center; }
+        .prefix { position: absolute; left: 0; color: rgba(255,255,255,0.7); font-size: 16px; }
+
+        .btn-main { width: 100%; background-color: var(--white); color: var(--primary-orange); border: none; padding: 15px; border-radius: 30px; font-weight: bold; font-size: 15px; margin-top: 20px; cursor: pointer; text-transform: uppercase; }
+        
+        .plan-option { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); border-radius: 12px; padding: 15px; margin-bottom: 10px; cursor: pointer; text-align: left; transition: 0.3s; }
+        .plan-option.selected { background: var(--white); border-color: var(--white); }
+        .plan-option.selected h4, .plan-option.selected p { color: var(--primary-orange); }
+        .plan-option h4 { margin: 0; color: var(--white); font-size: 14px; text-transform: uppercase; }
+        .plan-option p { margin: 5px 0 0; font-size: 12px; color: rgba(255,255,255,0.8); line-height: 1.4; }
+
+        .support-container { margin-top: 40px; display: flex; align-items: center; justify-content: center; gap: 8px; opacity: 0.7; font-size: 13px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="wrapper" id="app-container">
+        <div class="card" id="step-1">
+            <div class="logo-text">Pede <span class="ai-badge">Ai</span></div>
+            <div class="slogan">Comece a vender hoje mesmo</div>
+            
+            <input type="text" id="nomeLoja" placeholder="Nome da Loja">
+            <input type="email" id="email" placeholder="E-mail de Acesso">
+            <div style="position: relative; width: 100%; display: flex; justify-content: center; align-items: center;">
+                <input type="password" id="senha" placeholder="Crie uma Senha" style="padding: 12px 40px; margin-bottom: 15px;">
+                <i class="fas fa-eye" id="toggleCad" style="position: absolute; right: 5px; top: 12px; cursor: pointer; color: rgba(255,255,255,0.7); font-size: 18px; padding: 5px;"></i>
+            </div>
+            <div class="whatsapp-input-container">
+                <span class="prefix">+55</span>
+                <input type="tel" id="whats" placeholder="WhatsApp (DDD + Número)" style="padding-left: 35px;">
+            </div>
+
+            <div style="margin-top:10px; font-size:12px; display: flex; align-items: center; gap: 8px; justify-content: center; opacity: 0.9;">
+                <input type="checkbox" id="aceiteTermos" style="width: auto; margin: 0;">
+                <label for="aceiteTermos">
+                    Eu concordo com os 
+                    <a href="termos.html" style="color: white; text-decoration: underline;">Termos</a> e 
+                    <a href="privacidade.html" style="color: white; text-decoration: underline;">Privacidade</a>
+                </label>
+            </div>
+
+            <button id="btnProsseguir" class="btn-main">PROSSEGUIR</button>
+            <a href="login.html" style="color:white; display:block; margin-top:20px; font-size:14px; text-decoration:none; opacity:0.8;">Voltar ao Login</a>
+        </div>
+
+        <div class="card" id="step-2" style="display:none;">
+            <h3 style="margin-bottom:20px;">Escolha seu Plano</h3>
+            <div class="plan-option" onclick="selectPlan('basico', this)">
+                <h4>BÁSICO</h4>
+                <p>• 70 produtos • 1 turbo • Comida OU Geral</p>
+            </div>
+            <div class="plan-option" onclick="selectPlan('premium', this)">
+                <h4>PREMIUM</h4>
+                <p>• 120 produtos • 3 turbos • Comida E Geral</p>
+            </div>
+            <div class="plan-option" onclick="selectPlan('vip', this)">
+                <h4>VIP</h4>
+                <p>• Ilimitado • 5 turbos • Acesso Total</p>
+            </div>
+           <button id="btnFinalizar" class="btn-main">ESCOLHER ESTE PLANO</button>
+        </div>
+
+        <div class="support-container" id="btnSuporteCadastro">
+            <i class="fab fa-whatsapp"></i>
+            <span>Suporte</span>
+        </div>
+    </div>
+
+    <script type="module">
+        import { db } from './config.js';
+        import { collection, addDoc, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        document.getElementById('toggleCad').addEventListener('click', function() {
+            const input = document.getElementById('senha');
+            const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+            input.setAttribute('type', type);
+            this.classList.toggle('fa-eye-slash');
+        });
+
+        let selectedPlan = null;
+        window.selectPlan = (plan, el) => {
+            selectedPlan = plan;
+            document.querySelectorAll('.plan-option').forEach(opt => opt.classList.remove('selected'));
+            el.classList.add('selected');
+        };
+
+        document.getElementById('btnProsseguir').onclick = () => {
+            const aceite = document.getElementById("aceiteTermos");
+            if (!aceite || !aceite.checked) {
+                alert("Você precisa aceitar os termos para continuar.");
+                return;
+            }
+
+            const nomeLoja = document.getElementById('nomeLoja').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const senha = document.getElementById('senha').value.trim();
+            const whatsapp = document.getElementById('whats').value.trim();
+            if (!nomeLoja || !email || !senha || !whatsapp) return alert("Preencha todos os campos!");
+            document.getElementById('step-1').style.display = 'none';
+            document.getElementById('step-2').style.display = 'block';
+        };
+
+        document.getElementById('btnFinalizar').onclick = async () => {
+            if (!selectedPlan) return alert("Selecione um plano!");
+            const btn = document.getElementById('btnFinalizar');
+            btn.disabled = true; btn.innerText = "PROCESSANDO...";
+            try {
+                const email = document.getElementById('email').value.trim().toLowerCase();
+                const q = query(collection(db, "usuarios"), where("email", "==", email));
+                const snap = await getDocs(q);
+                if (!snap.empty) {
+                    alert("E-mail já cadastrado.");
+                    btn.disabled = false; btn.innerText = "FINALIZAR CADASTRO"; return;
+                }
+                const senhaDigitada = document.getElementById('senha').value.trim();
+const encoder = new TextEncoder();
+const data = encoder.encode(senhaDigitada);
+const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+const hashArray = Array.from(new Uint8Array(hashBuffer));
+const senhaHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+await addDoc(collection(db, "usuarios"), {
+    nomeLoja: document.getElementById('nomeLoja').value.trim(),
+    email, senha: senhaHash,
+                    whatsapp: "+55" + document.getElementById('whats').value.trim(),
+                    status: "pendente", planoAtivo: selectedPlan, createdAt: new Date()
+                });
+   document.getElementById('app-container').innerHTML = `
+    <div class="card">
+        <i class="fas fa-check-circle" style="font-size:50px; margin-bottom:20px;"></i>
+        <h2>Quase lá!</h2>
+        <p>
+            Seu cadastro foi recebido com sucesso.<br><br>
+            Para ativar seu plano, entre em contato com nossa equipe pelo WhatsApp. A ativação é feita manualmente em poucos minutos.
+        </p>
+        <button class="btn-main" id="btnSuporteFinal" style="background-color: #25d366; color: white; margin-bottom: 10px;">
+            <i class="fab fa-whatsapp"></i> ATIVAR MEU PLANO
+        </button>
+        <button class="btn-main" onclick="window.location.href='login.html'">IR PARA LOGIN</button>
+    </div>`;
+            } catch (e) { alert("Erro ao cadastrar."); btn.disabled = false; }
+        };
+
+        async function chamarSuporte(msg) {
+            const mensagem = encodeURIComponent(msg);
+            let numeroSuporte = "5511999999999";
+            try {
+                const docSnap = await getDoc(doc(db, "configuracoes", "suporte"));
+                if (docSnap.exists() && docSnap.data().numero) {
+                    numeroSuporte = docSnap.data().numero;
+                }
+            } catch (e) { console.error(e); }
+            window.location.href = `https://wa.me/${numeroSuporte.replace(/\D/g, '')}?text=${mensagem}`;
+        }
+
+        document.addEventListener('click', (e) => {
+            if(e.target.closest('#btnSuporteCadastro')) chamarSuporte("Olá! Tenho dúvidas sobre o cadastro.");
+            if(e.target.closest('#btnSuporteFinal')) chamarSuporte("Olá! Já finalizei meu cadastro e gostaria de agilizar a ativação.");
+        });
+    </script>
+</body>
+</html>

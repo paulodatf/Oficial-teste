@@ -1,0 +1,9 @@
+{
+  "appId": "com.pedeai.app",
+  "appName": "Pede Aí",
+  "webDir": "www",
+  "server": {
+    "url": "https://paulodatf.github.io/Oficial-teste/",
+    "cleartext": true
+  }
+}
