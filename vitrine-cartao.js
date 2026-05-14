@@ -123,16 +123,86 @@ ${lojistaInfoCache.montarAtivo && p.permiteMontar === true ? `<button onclick="w
                 }
             } else {
                 // Aplica lógica visual idêntica ao vitrine.js: cover para gourmet, contain para outros
-                const estiloImagemGourmet = modo === 'gourmet' ? 'object-fit: cover; padding: 0; background: none;' : '';
+                let estiloImagemCard = `
+    object-fit: cover;
+    padding: 0;
+    background: none;
+`;
+
+// AJUSTE SOMENTE PRODUTOS
+if (modo !== 'gourmet') {
+
+    estiloImagemCard = `
+        width: 100%;
+        height: 230px;
+        background: #fcfcfc;
+        padding: 4px;
+        border-radius: 14px 14px 0 0;
+        display: block;
+        transition: 0.2s;
+    `;
+
+}
+
+htmlGridLojista += `
+    <div class="card-p" onclick="window.location.href='?lojista=${lojistaId}&product=${d.id}&modo=${modo}'">
+
+        <img 
+            src="${otimizarURL(fotos[0], 400)}"
+            loading="lazy"
+
+            onload="
+                const w = this.naturalWidth;
+                const h = this.naturalHeight;
+
+                if('${modo}' !== 'gourmet') {
+
+                    if(h > w) {
+
+                        // FOTO VERTICAL
+                        this.style.objectFit = 'contain';
+                        this.style.objectPosition = 'center';
+
+                        // AJUSTE FINO
+                        this.style.scale = '1.06';
+
+                    }
+
+                    else if(w > h) {
+
+                        // FOTO HORIZONTAL
+                        this.style.objectFit = 'cover';
+                        this.style.objectPosition = 'center';
+
+                        // AJUSTE FINO
+                        this.style.scale = '1.02';
+
+                    }
+
+                    else {
+
+                        // FOTO QUADRADA
+                        this.style.objectFit = 'contain';
+                        this.style.objectPosition = 'center';
+
+                        this.style.scale = '1.04';
+
+                    }
+
+                }
+            "
+
+            style="${estiloImagemCard}"
+        >
+
+        <div class="card-p-info">
+            <div class="card-p-name">${p.nome}</div>
+            <div class="card-p-price">R$ ${p.preco}</div>
+        </div>
+
+    </div>
+`;
                 
-                htmlGridLojista += `
-                    <div class="card-p" onclick="window.location.href='?lojista=${lojistaId}&product=${d.id}&modo=${modo}'">
-                        <img src="${otimizarURL(fotos[0], 400)}" loading="lazy" style="${estiloImagemGourmet}">
-                        <div class="card-p-info">
-                            <div class="card-p-name">${p.nome}</div>
-                            <div class="card-p-price">R$ ${p.preco}</div>
-                        </div>
-                    </div>`;
             }
         });
 

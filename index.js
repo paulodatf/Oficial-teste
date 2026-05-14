@@ -8,6 +8,13 @@ let filtroTexto = '';
 let animationId = null;
 let isReturning = false;
 
+// Cache para armazenar a posição do scroll de cada categoria
+const scrollModesCache = {
+    'products': 0,
+    'restaurants': 0,
+    'classifieds': 0
+};
+
 function otimizarURL(url, width = 400) {
     if (!url || typeof url !== 'string') return url;
     if (!url.includes('cloudinary.com')) return url;
@@ -50,12 +57,21 @@ function normalizar(texto) {
     return texto ? texto.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
 }
 
+const ordemFixaCache = {};
+
 function aplicarAlgoritmoVisibilidade(lista) {
     const pesos = { 'vip': 5, 'premium': 3, 'basico': 1 };
+    const obterSeed = (id) => {
+        if (ordemFixaCache[id] === undefined) {
+            ordemFixaCache[id] = Math.random() - 0.5;
+        }
+        return ordemFixaCache[id];
+    };
+
     const grupos = {
-        vip: lista.filter(p => p.planoLojista === 'vip').sort(() => Math.random() - 0.5),
-        premium: lista.filter(p => p.planoLojista === 'premium').sort(() => Math.random() - 0.5),
-        basico: lista.filter(p => p.planoLojista === 'basico' || !p.planoLojista).sort(() => Math.random() - 0.5)
+        vip: lista.filter(p => p.planoLojista === 'vip').sort((a, b) => obterSeed(a.id) - obterSeed(b.id)),
+        premium: lista.filter(p => p.planoLojista === 'premium').sort((a, b) => obterSeed(a.id) - obterSeed(b.id)),
+        basico: lista.filter(p => (p.planoLojista === 'basico' || !p.planoLojista)).sort((a, b) => obterSeed(a.id) - obterSeed(b.id))
     };
 
     const resultado = [];
@@ -82,31 +98,32 @@ async function inicializar() {
     };
 
     try {
-        const snapProdutos = await getDocs(collection(db, "produtos"));
-        const snapUsuarios = await getDocs(collection(db, "usuarios"));
-        
-        const dadosLojistas = {};
-        snapUsuarios.forEach(u => {
-            dadosLojistas[u.id] = u.data();
-        });
-
-        todosProdutos = [];
-        snapProdutos.forEach(d => {
-            const data = d.data();
-            if(data.promocao === 'sim' && data.promoExpira && Date.now() > data.promoExpira) data.promocao = 'nao';
+        if (todosProdutos.length === 0) {
+            const snapProdutos = await getDocs(collection(db, "produtos"));
+            const snapUsuarios = await getDocs(collection(db, "usuarios"));
             
-            const lojista = dadosLojistas[data.owner];
-            const regras = GetRegrasLojista(lojista);
-
-            todosProdutos.push({ 
-                id: d.id, 
-                ...data, 
-                nomeLoja: lojista?.nomeLoja || 'Loja Parceira',
-                planoLojista: lojista?.planoAtivo || 'basico',
-                isLojistaAprovado: lojista ? regras.podeExibirProdutos : false,
-                isProdutoAtivo: data.status !== 'inativo' && data.visivel !== false
+            const dadosLojistas = {};
+            snapUsuarios.forEach(u => {
+                dadosLojistas[u.id] = u.data();
             });
-        });
+
+            snapProdutos.forEach(d => {
+                const data = d.data();
+                if(data.promocao === 'sim' && data.promoExpira && Date.now() > data.promoExpira) data.promocao = 'nao';
+                
+                const lojista = dadosLojistas[data.owner];
+                const regras = GetRegrasLojista(lojista);
+
+                todosProdutos.push({ 
+                    id: d.id, 
+                    ...data, 
+                    nomeLoja: lojista?.nomeLoja || 'Loja Parceira',
+                    planoLojista: lojista?.planoAtivo || 'basico',
+                    isLojistaAprovado: lojista ? regras.podeExibirProdutos : false,
+                    isProdutoAtivo: data.status !== 'inativo' && data.visivel !== false
+                });
+            });
+        }
 
         const domCache = sessionStorage.getItem('pedeai_dom_cache');
         isReturning = (domCache !== null);
@@ -268,7 +285,32 @@ function renderizarProdutos() {
                 `<button class="btn-add-main" onclick="event.preventDefault(); event.stopPropagation(); window.adicionarAoCarrinho('${p.id}', '${nomeSanitizado}', '${p.preco}', '${p.owner}', '${p.whatsapp}', '${imgRaw}', '${linkProduto}', '${descSanitizada}')">Adicionar</button>`;
             
             return `<div class="product-card" onclick="navegarParaProduto('${p.owner}', '${p.id}', '${paramModo}')">
-                    <div class="img-box"><img src="${img}" loading="lazy"></div>
+              <div class="img-box">
+    <img 
+        src="${img}" 
+        loading="lazy"
+
+        onload="
+            const w = this.naturalWidth;
+            const h = this.naturalHeight;
+
+            // FOTO VERTICAL
+            if(h > w) {
+                this.style.transform = 'scale(1.08) scaleX(1.12)';
+            }
+
+            // FOTO HORIZONTAL
+            else if(w > h) {
+                this.style.transform = 'scale(1.03) scaleX(1.05)';
+            }
+
+            // FOTO QUADRADA
+            else {
+                this.style.transform = 'scale(1.05)';
+            }
+        "
+    >
+</div>
                     <div class="card-body">
                         ${lojistaTag}
                         <div class="p-name">${p.nome}</div>
@@ -291,28 +333,38 @@ window.filtrarPorPalavra = (termo, elemento) => {
     filtroChip = normalizar(termo);
     document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
     elemento.classList.add('active');
-    sessionStorage.removeItem('pedeai_dom_cache'); 
     renderizarProdutos();
 };
 
 window.addEventListener('changeMode', (e) => {
-    if (modoAtual === e.detail && !isReturning) return;
+    // 1. Salva a posição do scroll do modo que o usuário está SAINDO
+    scrollModesCache[modoAtual] = window.scrollY;
+
     modoAtual = e.detail;
     filtroChip = ''; 
+
     const logo = document.getElementById('main-logo');
     if(logo) {
         let iconHtml = modoAtual === 'restaurants' ? '<i class="fas fa-utensils"></i>' : (modoAtual === 'classifieds' ? '<i class="fas fa-bullhorn"></i>' : '<i class="fas fa-bag-shopping"></i>');
         logo.innerHTML = `${iconHtml} Pede Aí`;
     }
-    sessionStorage.removeItem('pedeai_dom_cache');
+
     renderizarCarrosselAutomatico();
     renderizarFiltros();
     renderizarProdutos();
+
+    // 2. Restaura a posição do scroll para o NOVO modo
+    // Usamos setTimeout 0 para garantir que o DOM já foi atualizado pela renderização
+    setTimeout(() => {
+        window.scrollTo({
+            top: scrollModesCache[modoAtual] || 0,
+            behavior: 'instant'
+        });
+    }, 0);
 });
 
 document.getElementById('inputBusca')?.addEventListener('input', (e) => {
     filtroTexto = e.target.value;
-    sessionStorage.removeItem('pedeai_dom_cache');
     renderizarProdutos();
 });
 

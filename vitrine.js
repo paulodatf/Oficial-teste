@@ -95,8 +95,20 @@ export async function carregarVitrineCompleta() {
             const p = d.data();
             if (p.status === "desativado" || p.visivel === false) return;
 
-            const fotos = Array.isArray(p.foto) ? p.foto : [p.foto];
-            const imgCapaRaw = fotos[0] || "https://via.placeholder.com/300";
+            // Normaliza a origem das fotos aceitando: p.fotos (array), p.foto (array) ou p.foto (string)
+let listaFotosRaw = [];
+if (Array.isArray(p.fotos)) {
+    listaFotosRaw = p.fotos;
+} else if (Array.isArray(p.foto)) {
+    listaFotosRaw = p.foto;
+} else if (typeof p.foto === 'string' && p.foto.trim() !== '') {
+    listaFotosRaw = [p.foto];
+} else {
+    listaFotosRaw = ["https://via.placeholder.com/300"];
+}
+
+const fotos = listaFotosRaw;
+const imgCapaRaw = fotos[0];
             const imgCapaOtimizada = otimizarURL(imgCapaRaw, 600);
             const linkProduto = gerarLinkVitrine(sellerId, d.id, modo);
             // Agora sempre considera que tem config se for Comida, para oferecer os adicionais da loja
@@ -185,9 +197,65 @@ const funcAbrirIntermediario = `window.abrirConfigComida('${d.id}', false, true)
 
                     htmlDestaque = `
                         <div class="destaque-container" style="background: #fff;">
-                            <div class="slider-wrapper" style="width: 100vw; aspect-ratio: 1/1; position: relative; overflow: hidden; background: #fff;">
-                                <div class="image-slider" id="slider-main" style="display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;">
-                                    ${fotos.map(url => `<img src="${otimizarURL(url, 800)}" style="width: 100vw; height: 100vw; object-fit: contain; background: #fff; flex-shrink: 0; scroll-snap-align: start;">`).join('')}
+                            <div class="slider-wrapper" style="
+    width: 100%;
+    height: 420px;
+    position: relative;
+    overflow: hidden;
+    background: #fff;
+    border-bottom: 1px solid #f0f0f0;
+">
+                                <div class="image-slider" id="slider-main" style="
+    display: flex;
+    width: 100%;
+    height: 100%;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+">
+                                    ${fotos.map(url => `
+  <div style="
+    min-width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    scroll-snap-align: start;
+    padding: 0;
+    overflow: hidden;
+">
+        <img 
+    src="${otimizarURL(url, 1000)}"
+    onload="
+        const w = this.naturalWidth;
+        const h = this.naturalHeight;
+
+  if(h > w) {
+    // FOTO VERTICAL
+    this.style.objectFit = 'contain';
+    this.style.transform = 'scale(1.15) scaleX(1.12)';
+} 
+else if(w > h) {
+    // FOTO HORIZONTAL
+    this.style.objectFit = 'cover';
+    this.style.transform = 'scale(1.02) scaleX(1.01)';
+} 
+else {
+    // FOTO QUADRADA
+    this.style.objectFit = 'contain';
+    this.style.transform = 'scale(1.08) scaleX(1.02)';
+}
+    "
+    style="
+        width: 100%;
+        height: 100%;
+        object-position: center;
+        transition: 0.2s;
+    "
+>
+    </div>
+`).join('')}
                                 </div>
                                 <div class="photo-counter" style="position: absolute; bottom: 15px; right: 15px; background: rgba(0,0,0,0.6); color: #fff; padding: 4px 12px; border-radius: 15px; font-size: 12px;">
                                     <span id="counter">1</span>/${fotos.length}
@@ -208,13 +276,32 @@ const funcAbrirIntermediario = `window.abrirConfigComida('${d.id}', false, true)
                         </div>`;
                 }
             } else if (p.owner === sellerId) {
-                // Ajuste cirúrgico: 'contain' apenas para produtos comuns, 'cover' para gourmet
-                let estiloImagemCustom = 'width: 100%; aspect-ratio: 1/1; object-fit: cover;';
-                
-                if (modo !== 'gourmet') {
-                    estiloImagemCustom = 'width: 100%; aspect-ratio: 1/1; object-fit: contain; background: #fcfcfc; padding: 4px;';
-                }
+            // Gourmet mantém visual premium com bordas suaves e imagem preenchida
 
+
+                
+// Mantém gourmet ORIGINAL
+let estiloImagemCustom = `
+    width: 100%;
+    aspect-ratio: 1/1;
+    object-fit: cover;
+`;
+
+// AJUSTE SOMENTE PARA PRODUTOS
+if (modo !== 'gourmet') {
+
+    estiloImagemCustom = `
+        width: 100%;
+        height: 230px;
+        background: #fcfcfc;
+        padding: 4px;
+        border-radius: 14px 14px 0 0;
+        display: block;
+        transition: 0.2s;
+    `;
+
+}
+                
                 htmlGridLojista += `
                     <div class="card-menor" onclick="window.location.href='vitrine-lojista.html?seller=${sellerId}&product=${d.id}&modo=${modo}'" style="background: #fff; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; border: 1px solid #eee;">
                         <img src="${otimizarURL(imgCapaOtimizada, 300)}" style="${estiloImagemCustom}">
