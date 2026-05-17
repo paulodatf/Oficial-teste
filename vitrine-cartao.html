@@ -69,6 +69,67 @@
         .container-botoes-gourmet { display: flex; gap: 10px; margin-top: 15px; width: 100%; }
         .container-botoes-gourmet .btn-action-main { flex: 1; padding: 12px 5px; font-size: 13px; margin: 0 !important; }
         .btn-montar-inline { background: #555 !important; display: flex; align-items: center; justify-content: center; gap: 5px; }
+    /* MENU DENÚNCIA */
+.menu-produto-wrap {
+    position: relative;
+    display: flex;
+    justify-content: flex-end;
+    z-index: 30;
+}
+
+.btn-menu-produto {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255,255,255,0.96);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #444;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.menu-flutuante-produto {
+    position: absolute;
+    top: 42px;
+    right: 0;
+    background: #fff;
+    border-radius: 12px;
+    min-width: 180px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.14);
+    overflow: hidden;
+    display: none;
+    border: 1px solid #eee;
+}
+
+.menu-item-produto {
+    padding: 14px;
+    font-size: 14px;
+    color: #e53935;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.menu-item-produto:active {
+    background: #f8f8f8;
+}
+
+/* IMPORTANTE */
+.card-p {
+    position: relative;
+}
+
+.destaque-produto-modo-prod,
+.container-gourmet-destaque {
+    position: relative;
+}
     </style>
 </head>
 <body class="vitrine-cartao-page">
@@ -114,7 +175,6 @@
 </script>
 
 <script>
-    <script>
         window.fecharModalComida = () => {
             document.getElementById('modalComida').style.bottom = '-100%';
             document.getElementById('overlayComida').style.display = 'none';

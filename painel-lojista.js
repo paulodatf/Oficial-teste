@@ -2,17 +2,13 @@
 import { db, GetRegrasLojista } from './config.js'; 
 import { collection, addDoc, getDocs, getDoc, query, where, deleteDoc, doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// BLOQUEIO DE CACHE DO PAINEL
-window.history.pushState(null, null, window.location.href);
-window.onpopstate = function () {
-    window.history.go(1);
-};
-
 // VERIFICA LOGIN
 const userId = localStorage.getItem('userId');
 
 if (!userId) {
-    window.location.replace('index.html');
+    setTimeout(() => {
+        window.location.replace('index.html');
+    }, 100);
 }
 
 let userData = null;
@@ -556,8 +552,7 @@ document.getElementById('btn-salvar').onclick = async () => {
 window.excluirProd = async (id) => { if(confirm("Excluir item?")) { await deleteDoc(doc(db, "produtos", id)); carregarProdutos(); } };
 document.getElementById('btnSair').onclick = () => {
     localStorage.clear();
-    window.history.replaceState(null, null, 'index.html');
-    window.location.replace('index.html');
+    window.location.href = 'index.html';
 };
 
 verificarStatus();
@@ -726,5 +721,62 @@ window.solicitarExclusaoContaNova = async () => {
     } catch (e) {
         console.error(e);
         alert("Erro ao enviar solicitação.");
+    }
+};
+// ═══════════════════════════════════════════
+// ALTERAR SENHA — usa o mesmo SHA-256 do sistema
+// ═══════════════════════════════════════════
+window.abrirModalAlterarSenha = () => {
+    document.getElementById('inputNovaSenha').value = '';
+    document.getElementById('inputConfirmarSenha').value = '';
+    document.getElementById('statusAlterarSenha').innerText = '';
+    document.getElementById('modalAlterarSenha').style.display = 'flex';
+};
+
+window.fecharModalAlterarSenha = () => {
+    document.getElementById('modalAlterarSenha').style.display = 'none';
+};
+
+window.salvarNovaSenha = async () => {
+    const novaSenha = document.getElementById('inputNovaSenha').value;
+    const confirmar = document.getElementById('inputConfirmarSenha').value;
+    const status = document.getElementById('statusAlterarSenha');
+    const btn = document.getElementById('btnConfirmarSenha');
+
+    if (!novaSenha || novaSenha.length < 4) {
+        status.style.color = '#dc3545';
+        status.innerText = '⚠️ A senha precisa ter pelo menos 4 caracteres.';
+        return;
+    }
+    if (novaSenha !== confirmar) {
+        status.style.color = '#dc3545';
+        status.innerText = '⚠️ As senhas não coincidem.';
+        return;
+    }
+
+    btn.innerText = 'Salvando...';
+    btn.disabled = true;
+    status.innerText = '';
+
+    try {
+        // Mesmo hash SHA-256 usado pelo admin e pelo login
+        const encoder = new TextEncoder();
+        const data = encoder.encode(novaSenha);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const senhaHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+        await updateDoc(doc(db, "usuarios", userId), { senha: senhaHash });
+
+        status.style.color = '#28a745';
+        status.innerText = '✅ Senha alterada com sucesso!';
+        setTimeout(() => window.fecharModalAlterarSenha(), 1500);
+    } catch (e) {
+        console.error(e);
+        status.style.color = '#dc3545';
+        status.innerText = '❌ Erro ao salvar. Tente novamente.';
+    } finally {
+        btn.innerText = 'SALVAR NOVA SENHA';
+        btn.disabled = false;
     }
 };

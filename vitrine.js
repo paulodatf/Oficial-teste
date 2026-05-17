@@ -1,5 +1,5 @@
 import { db, GetRegrasLojista } from './config.js';
-import { doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import {doc, getDoc, collection, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 let itemAtualConfig = null;
 let lojistaInfoCache = null;
@@ -65,17 +65,51 @@ export async function carregarVitrineCompleta() {
                 const header = document.getElementById('main-header');
                 if (header) {
                     header.innerHTML = `
-                        <div style="display: flex; align-items: center; width: 100%; justify-content: space-between; padding: 0 5px;">
-                            <div style="display: flex; align-items: center;">
-                                <a href="index.html" class="back-btn" style="text-decoration:none; color:#333;"><i class="fas fa-arrow-left"></i></a>
-                                <div style="display: flex; flex-direction: column;">
-                                    <span style="font-weight: 700; font-size: 14px; color:#111;">${nomeParaExibir}</span>
-                                    <span style="font-size: 11px; color:#888;">${modo === 'gourmet' ? 'Cardápio Digital' : 'Loja Oficial'}</span>
-                                </div>
-                            </div>
-                            <img src="${otimizarURL(fotoParaExibir, 100)}" 
-                                 style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-                        </div>`;
+<div style="display: flex; align-items: center; width: 100%; justify-content: space-between; padding: 0 5px;">
+
+    <div style="display: flex; align-items: center;">
+        <a href="index.html" class="back-btn" style="text-decoration:none; color:#333;">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+
+        <div style="display: flex; flex-direction: column;">
+            <span style="font-weight: 700; font-size: 14px; color:#111;">
+                ${nomeParaExibir}
+            </span>
+
+            <span style="font-size: 11px; color:#888;">
+                ${modo === 'gourmet' ? 'Cardápio Digital' : 'Loja Oficial'}
+            </span>
+        </div>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:10px;">
+
+        <button 
+            onclick="window.abrirModalDenuncia('${sellerId}', '${nomeParaExibir}')"
+            style="
+                border:none;
+                background:transparent;
+                font-size:18px;
+                color:#666;
+                cursor:pointer;
+            ">
+            <i class="fas fa-flag"></i>
+        </button>
+
+        <img 
+            src="${otimizarURL(fotoParaExibir, 100)}"
+            style="
+                width: 36px;
+                height: 36px;
+                border-radius: 50%;
+                object-fit: cover;
+                border: 2px solid #fff;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            ">
+    </div>
+
+</div>`;
                 }
                 
             } else { return; }
@@ -539,4 +573,56 @@ window.abrirAdicionaisProduto = (id, nome, preco, owner, whatsapp, imagem, link,
 
     overlay.style.display = 'block';
     modal.classList.add('active');
+};
+let denunciaAtual = null;
+
+window.abrirModalDenuncia = (sellerId, lojaNome) => {
+
+    denunciaAtual = {
+        sellerId,
+        lojaNome
+    };
+
+    document.getElementById('modalDenuncia').style.display = 'block';
+};
+
+window.fecharModalDenuncia = () => {
+
+    document.getElementById('modalDenuncia').style.display = 'none';
+
+    document.getElementById('textoDenuncia').value = '';
+};
+
+window.enviarDenuncia = async () => {
+
+    const texto = document.getElementById('textoDenuncia').value.trim();
+
+    if(!texto) {
+        alert('Descreva o motivo da denúncia.');
+        return;
+    }
+
+    try {
+
+        await addDoc(collection(db, "denuncias"), {
+
+            sellerId: denunciaAtual.sellerId,
+            lojaNome: denunciaAtual.lojaNome,
+            motivo: texto,
+
+            data: serverTimestamp(),
+
+            origem: "vitrine-lojista"
+        });
+
+        alert('Denúncia enviada com sucesso.');
+
+        window.fecharModalDenuncia();
+
+    } catch(e) {
+
+        console.error(e);
+
+        alert('Erro ao enviar denúncia.');
+    }
 };

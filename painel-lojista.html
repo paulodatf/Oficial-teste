@@ -3,6 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- META TAGS APPLE -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Pede Aí">
+    <link rel="apple-touch-icon" href="icon-180x180.png">
+    
     <title>Painel Pro | Pede Aí</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -192,6 +199,37 @@
 
             <button id="btnSalvarPerfilGeral" class="btn-post" style="margin:0;">Salvar Alterações</button>
             <span id="uploadStatus" style="font-size: 11px; color: #888; margin-top: 10px; display: block;"></span>
+
+            <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
+
+            <button onclick="window.abrirModalAlterarSenha()" style="background: none; border: 1.5px solid #ee4d2d; color: #ee4d2d; padding: 10px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; font-size: 14px;">
+                <i class="fa-solid fa-key"></i> Alterar Senha
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL ALTERAR SENHA -->
+    <div id="modalAlterarSenha" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:3000; align-items:center; justify-content:center; padding:20px; box-sizing:border-box;">
+        <div style="background:white; padding:25px; border-radius:20px; max-width:380px; width:100%; text-align:center; position:relative; box-shadow:0 10px 25px rgba(0,0,0,0.3); animation: slideDown 0.3s ease;">
+            <button onclick="window.fecharModalAlterarSenha()" style="position:absolute; top:15px; right:15px; background:none; border:none; font-size:22px; cursor:pointer; color:#999;">&times;</button>
+
+            <i class="fa-solid fa-lock" style="font-size: 36px; color: #ee4d2d; margin-bottom: 12px;"></i>
+            <h3 style="margin:0 0 20px; color:#333;">Alterar Senha</h3>
+
+            <div style="text-align:left; margin-bottom:12px;">
+                <label style="font-size:13px; font-weight:bold; color:#555; display:block; margin-bottom:5px;">Nova Senha</label>
+                <input type="password" id="inputNovaSenha" placeholder="Mínimo 4 caracteres" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; box-sizing:border-box; font-size:14px;">
+            </div>
+
+            <div style="text-align:left; margin-bottom:20px;">
+                <label style="font-size:13px; font-weight:bold; color:#555; display:block; margin-bottom:5px;">Confirmar Nova Senha</label>
+                <input type="password" id="inputConfirmarSenha" placeholder="Repita a nova senha" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; box-sizing:border-box; font-size:14px;">
+            </div>
+
+            <button id="btnConfirmarSenha" onclick="window.salvarNovaSenha()" style="background:#ee4d2d; color:white; border:none; padding:13px; border-radius:8px; width:100%; font-weight:bold; font-size:15px; cursor:pointer;">
+                SALVAR NOVA SENHA
+            </button>
+            <span id="statusAlterarSenha" style="font-size:12px; margin-top:10px; display:block; color:#666;"></span>
         </div>
     </div>
 

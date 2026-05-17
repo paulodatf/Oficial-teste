@@ -1,5 +1,5 @@
 import { db, GetRegrasLojista } from './config.js';
-import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 let todosProdutos = [];
 let modoAtual = sessionStorage.getItem('pedeai_mode') || 'products';
@@ -268,15 +268,31 @@ function renderizarProdutos() {
             <i class="fas fa-store" style="font-size: 9px;"></i> ${p.nomeLoja}
         </div>`;
 
+        // MENU DE DENÚNCIA
+        const menuDenuncia = `
+            <div class="report-menu-container" onclick="event.stopPropagation()">
+                <button class="btn-report-trigger" onclick="window.toggleReportMenu('${p.id}')">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <div id="report-dropdown-${p.id}" class="report-dropdown">
+                    <div class="report-item" onclick="window.abrirDenuncia('${p.id}', '${nomeSanitizado}', '${p.owner}', '${p.nomeLoja.replace(/'/g, "\\'")}')">
+                        <i class="fas fa-flag"></i> Denunciar produto
+                    </div>
+                </div>
+            </div>`;
+
         if (modoAtual === 'restaurants') {
             return `<div class="gourmet-card" onclick="navegarParaProduto('${p.owner}', '${p.id}', '${paramModo}')">
-                    <div class="gourmet-img-box"><img src="${img}" loading="lazy"></div>
-                    <div class="gourmet-body">
-                        ${lojistaTag}
-                        <div class="gourmet-name">${p.nome}</div>
-                        <div class="gourmet-price">R$ ${p.preco}</div>
-                    </div>
-                </div>`;
+        <div class="gourmet-img-box"><img src="${img}" loading="lazy"></div>
+        <div class="gourmet-body">
+            ${lojistaTag}
+            <div class="gourmet-name">${p.nome}</div>
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+                <div class="gourmet-price">R$ ${p.preco}</div>
+                ${menuDenuncia}
+            </div>
+        </div>
+    </div>`;
         } else {
             const isRoupa = p.tipoProduto === 'roupa';
             const temTamanhos = (p.tamanhosDisponiveis && p.tamanhosDisponiveis.length > 0) || (p.numeracoes && p.numeracoes.trim() !== "");
@@ -285,39 +301,19 @@ function renderizarProdutos() {
                 `<button class="btn-add-main" onclick="event.preventDefault(); event.stopPropagation(); window.adicionarAoCarrinho('${p.id}', '${nomeSanitizado}', '${p.preco}', '${p.owner}', '${p.whatsapp}', '${imgRaw}', '${linkProduto}', '${descSanitizada}')">Adicionar</button>`;
             
             return `<div class="product-card" onclick="navegarParaProduto('${p.owner}', '${p.id}', '${paramModo}')">
-              <div class="img-box">
-    <img 
-        src="${img}" 
-        loading="lazy"
-
-        onload="
-            const w = this.naturalWidth;
-            const h = this.naturalHeight;
-
-            // FOTO VERTICAL
-            if(h > w) {
-                this.style.transform = 'scale(1.08) scaleX(1.12)';
-            }
-
-            // FOTO HORIZONTAL
-            else if(w > h) {
-                this.style.transform = 'scale(1.03) scaleX(1.05)';
-            }
-
-            // FOTO QUADRADA
-            else {
-                this.style.transform = 'scale(1.05)';
-            }
-        "
-    >
-</div>
-                    <div class="card-body">
-                        ${lojistaTag}
-                        <div class="p-name">${p.nome}</div>
-                        <div class="p-price">R$ ${p.preco}</div>
-                        ${btnHTML}
-                    </div>
-                </div>`;
+        <div class="img-box">
+            <img src="${img}" loading="lazy" onload="const w=this.naturalWidth; const h=this.naturalHeight; if(h>w){this.style.transform='scale(1.08) scaleX(1.12)';}else if(w>h){this.style.transform='scale(1.03) scaleX(1.05)';}else{this.style.transform='scale(1.05)';}">
+        </div>
+        <div class="card-body">
+            ${lojistaTag}
+            <div class="p-name">${p.nome}</div>
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-top:auto;">
+                <div class="p-price">R$ ${p.preco}</div>
+                ${menuDenuncia}
+            </div>
+            ${btnHTML}
+        </div>
+    </div>`;
         }
     }).join('');
 }
@@ -378,4 +374,42 @@ document.querySelectorAll('button, .filter-chip, .nav-item').forEach(el => {
     }, {passive: false});
 });
 
+window.toggleReportMenu = (id) => {
+    // Fecha outros menus abertos antes de abrir o atual
+    document.querySelectorAll('.report-dropdown').forEach(el => {
+        if(el.id !== `report-dropdown-${id}`) el.classList.remove('show');
+    });
+    const menu = document.getElementById(`report-dropdown-${id}`);
+    if(menu) menu.classList.toggle('show');
+};
+
+window.abrirDenuncia = async (id, nome, lojistaId, nomeLoja) => {
+    const motivo = prompt(`Por qual motivo deseja denunciar o produto "${nome}"? (Ex: Falso, abusivo, categoria errada)`);
+    
+    if (motivo && motivo.trim() !== "") {
+        try {
+            await addDoc(collection(db, "denuncias"), {
+                produtoId: id,
+                lojistaId: lojistaId,
+                nomeProduto: nome,
+                nomeLoja: nomeLoja,
+                motivo: motivo,
+                data: serverTimestamp(),
+                status: "pendente"
+            });
+            alert("Denúncia enviada com sucesso! Nossa equipe irá analisar.");
+        } catch (error) {
+            console.error("Erro ao denunciar:", error);
+            alert("Erro ao enviar denúncia. Tente novamente.");
+        }
+    }
+    document.querySelectorAll('.report-dropdown').forEach(el => el.classList.remove('show'));
+};
+
+// Fecha o menu ao clicar em qualquer lugar da tela
+document.addEventListener('click', () => {
+    document.querySelectorAll('.report-dropdown').forEach(el => el.classList.remove('show'));
+}, {passive: true});
+
 inicializar();
+

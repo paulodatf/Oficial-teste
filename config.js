@@ -68,11 +68,17 @@ export const GetRegrasLojista = (dadosLojista) => {
     
     const configuracaoPlano = CONFIG_SISTEMA.planos[planoChave] || CONFIG_SISTEMA.planos.basico;
 
-    const dataCriacao = dadosLojista?.dataCadastro ? new Date(dadosLojista.dataCadastro) : new Date();
-    const hoje = new Date();
-    const diffTime = Math.abs(hoje - dataCriacao);
-    const diasPassados = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    const diasRestantes = 30 - diasPassados;
+    // SISTEMA PROFISSIONAL DE VENCIMENTO
+const hoje = new Date();
+
+// Usa o vencimento salvo no banco
+const dataVencimento = dadosLojista?.proximoVencimento
+    ? new Date(dadosLojista.proximoVencimento)
+    : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+// Diferença em dias
+const diffTime = dataVencimento - hoje;
+const diasRestantes = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
     return {
         isAprovado: status === "ativo",

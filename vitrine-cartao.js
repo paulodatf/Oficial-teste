@@ -1,5 +1,5 @@
 import { db, GetRegrasLojista } from './config.js';
-import { doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { doc, getDoc, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const params = new URLSearchParams(window.location.search);
 const lojistaId = params.get('lojista') || params.get('seller');
@@ -92,7 +92,20 @@ async function carregarDadosEProdutos() {
                         <div class="container-gourmet-destaque">
                             <img src="${imgCapa}" class="img-gourmet-destaque">
                             <h2 class="titulo-gourmet-destaque">${p.nome}</h2>
-                            <div class="preco-gourmet-destaque">R$ ${p.preco}</div>
+                            <div style="display:flex; align-items:center; justify-content:space-between;">
+                                <div class="preco-gourmet-destaque" style="margin-bottom:0;">R$ ${p.preco}</div>
+                                <div class="menu-produto-wrap" onclick="event.stopPropagation()">
+                                    <button class="btn-menu-produto" onclick="window.toggleMenuDenuncia(event, '${d.id}')">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <div class="menu-flutuante-produto" id="menu-${d.id}">
+                                        <div class="menu-item-produto" onclick="window.denunciarProduto('${d.id}', '${nomeReal}')">
+                                            <i class="fas fa-flag"></i>
+                                            Denunciar produto
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="card-desc-gourmet">
                                 <i class="fas fa-quote-left"></i>
                                 <p class="texto-desc-gourmet">${p.descricao || 'Sem descrição disponível.'}</p>
@@ -110,7 +123,20 @@ ${lojistaInfoCache.montarAtivo && p.permiteMontar === true ? `<button onclick="w
                             </div>
                             <div class="info-area-prod">
                                 <h2>${p.nome}</h2>
-                                <div class="preco-destaque">R$ ${p.preco}</div>
+                                <div style="display:flex; align-items:center; justify-content:space-between;">
+                                    <div class="preco-destaque" style="margin-bottom:0;">R$ ${p.preco}</div>
+                                    <div class="menu-produto-wrap" onclick="event.stopPropagation()">
+                                        <button class="btn-menu-produto" onclick="window.toggleMenuDenuncia(event, '${d.id}')">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                        <div class="menu-flutuante-produto" id="menu-${d.id}">
+                                            <div class="menu-item-produto" onclick="window.denunciarProduto('${d.id}', '${nomeReal}')">
+                                                <i class="fas fa-flag"></i>
+                                                Denunciar produto
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                                 <div class="desc-produto-simples">${p.descricao || 'Nenhuma descrição informada.'}</div>
                                 ${p.tipoProduto === 'roupa' ? `
                                     <div class="tamanho-container">
@@ -145,7 +171,7 @@ if (modo !== 'gourmet') {
 }
 
 htmlGridLojista += `
-    <div class="card-p" onclick="window.location.href='?lojista=${lojistaId}&product=${d.id}&modo=${modo}'">
+    <div class="card-p" onclick="if(!event.target.closest('.menu-produto-wrap')) window.location.href='?lojista=${lojistaId}&product=${d.id}&modo=${modo}'">
 
         <img 
             src="${otimizarURL(fotos[0], 400)}"
@@ -198,7 +224,7 @@ htmlGridLojista += `
         <div class="card-p-info">
             <div class="card-p-name">${p.nome}</div>
             <div class="card-p-price">R$ ${p.preco}</div>
-        </div>
+            </div>
 
     </div>
 `;
@@ -428,4 +454,67 @@ window.tratarBotaoAdicionar = (id, nome, preco, owner, whatsapp, imagem, link, d
     }
 };
 
+window.toggleMenuDenuncia = (event, id) => {
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+
+    /* Fecha qualquer outro menu flutuante que possa estar aberto em paralelo */
+    document.querySelectorAll('.menu-flutuante-produto').forEach(menu => {
+        if(menu.id !== `menu-${id}`) {
+            menu.style.display = 'none';
+        }
+    });
+
+    const menu = document.getElementById(`menu-${id}`);
+    if(menu) {
+        if (menu.style.display === 'block') {
+            menu.style.display = 'none';
+        } else {
+            menu.style.display = 'block';
+        }
+    }
+};
+
+window.denunciarProduto = async (produtoId, nomeProduto) => {
+    const confirmar = confirm(
+        `Deseja denunciar o produto "${nomeProduto}"?`
+    );
+
+    if(!confirmar) return;
+
+    try {
+        /* Salva a denúncia estruturada de forma nativa na coleção "denuncias" no Firestore */
+        await addDoc(collection(db, "denuncias"), {
+            produtoId: produtoId || "",
+            nomeProduto: nomeProduto || "",
+            lojistaId: lojistaId || "",
+            denunciante: "anonimo",
+            data: new Date().toISOString(),
+            status: "pendente"
+        });
+
+        alert('Denúncia enviada com sucesso.');
+
+        /* Oculta os menus após a confirmação bem-sucedida */
+        document.querySelectorAll('.menu-flutuante-produto').forEach(menu => {
+            menu.style.display = 'none';
+        });
+
+    } catch(e) {
+        console.error("Erro ao enviar denúncia para o Firestore: ", e);
+        alert('Erro ao enviar denúncia.');
+    }
+};
+
+document.addEventListener('click', () => {
+
+    document.querySelectorAll('.menu-flutuante-produto').forEach(menu => {
+        menu.style.display = 'none';
+    });
+
+});
+
 init();
+

@@ -111,7 +111,69 @@
             <button id="btnConfirmarConfig" style="width:100%; height:50px; border-radius:25px; border:none; color:#fff; font-weight:700; font-size:15px; cursor:pointer; text-transform:uppercase; background:var(--ifood-red); box-shadow: 0 4px 12px rgba(234, 29, 44, 0.2);">Confirmar</button>
         </div>
     </div>
+ 
+    <!-- MODAL DENÚNCIA -->
+<div id="modalDenuncia" style="
+display:none;
+position:fixed;
+bottom:0;
+left:0;
+width:100%;
+background:#fff;
+z-index:5000;
+border-radius:20px 20px 0 0;
+padding:20px;
+box-shadow:0 -5px 25px rgba(0,0,0,0.2);
+">
 
+    <h3 style="margin-top:0;">Denunciar Loja</h3>
+
+    <textarea 
+        id="textoDenuncia"
+        placeholder="Descreva o problema..."
+        style="
+            width:100%;
+            height:120px;
+            border:1px solid #ddd;
+            border-radius:12px;
+            padding:12px;
+            resize:none;
+            font-family:inherit;
+            margin-top:10px;
+        "
+    ></textarea>
+
+    <button 
+        onclick="window.enviarDenuncia()"
+        style="
+            width:100%;
+            margin-top:15px;
+            height:50px;
+            border:none;
+            border-radius:14px;
+            background:#ea1d2c;
+            color:#fff;
+            font-weight:bold;
+            font-size:15px;
+        ">
+        Enviar denúncia
+    </button>
+
+    <button 
+        onclick="window.fecharModalDenuncia()"
+        style="
+            width:100%;
+            margin-top:10px;
+            height:45px;
+            border:none;
+            background:#f5f5f5;
+            border-radius:12px;
+        ">
+        Cancelar
+    </button>
+
+</div>
+    
     <script type="module">
     import './carrinho.js';
     import { carregarVitrineCompleta } from './vitrine.js';

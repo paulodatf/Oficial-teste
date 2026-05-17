@@ -55,6 +55,10 @@
         </div>
         <button id="btnEntrar" class="btn-main">ENTRAR NO PAINEL</button>
         <a href="cadastro.html" class="link-cadastrar">Cadastrar-se</a>
+        <br>
+        <button onclick="window.abrirRecuperacao()" style="background:none; border:none; color:rgba(255,255,255,0.75); font-size:13px; margin-top:12px; cursor:pointer; text-decoration:underline; text-underline-offset:3px; font-family:inherit; padding:0;">
+            Esqueci minha senha
+        </button>
        <br><br>
 <p style="font-size:12px;text-align:center;margin-top:20px;opacity:0.8;">
 Ao continuar, você concorda com nossos<br>
@@ -85,7 +89,98 @@ Ao continuar, você concorda com nossos<br>
     };
 </script>
 </div>
+<!-- MODAL: ESQUECI MINHA SENHA -->
+<div id="modalRecuperacao" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.55); z-index:5000; align-items:center; justify-content:center; padding:20px; box-sizing:border-box;">
+    <div style="background:#fff; border-radius:20px; padding:30px 24px; max-width:340px; width:100%; text-align:center; position:relative; box-shadow:0 12px 40px rgba(0,0,0,0.25); animation:fadeInUp 0.3s ease;">
+        
+        <button onclick="window.fecharRecuperacao()" style="position:absolute; top:14px; right:16px; background:none; border:none; font-size:22px; cursor:pointer; color:#aaa; line-height:1;">&times;</button>
 
+        <div style="width:52px; height:52px; background:#fff3f0; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 14px;">
+            <i class="fas fa-lock" style="font-size:22px; color:#ee4d2d;"></i>
+        </div>
+
+        <h3 style="margin:0 0 6px; font-size:18px; color:#222;">Esqueci minha senha</h3>
+        <p style="font-size:13px; color:#888; margin:0 0 22px; line-height:1.5;">Informe seu e-mail ou telefone cadastrado.<br>Nossa equipe entrará em contato.</p>
+
+        <input type="text" id="inputRecuperacao" placeholder="E-mail ou telefone"
+            style="width:100%; padding:13px 14px; border:1.5px solid #e0e0e0; border-radius:10px; font-size:14px; box-sizing:border-box; outline:none; color:#333; text-align:left; transition:border-color 0.2s; font-family:inherit;"
+            onfocus="this.style.borderColor='#ee4d2d'" onblur="this.style.borderColor='#e0e0e0'">
+
+        <button id="btnEnviarRecuperacao" onclick="window.enviarRecuperacao()"
+            style="width:100%; margin-top:14px; padding:14px; background:#ee4d2d; color:white; border:none; border-radius:10px; font-size:15px; font-weight:bold; cursor:pointer; font-family:inherit; transition:opacity 0.2s;">
+            ENVIAR SOLICITAÇÃO
+        </button>
+
+        <span id="statusRecuperacao" style="display:block; margin-top:12px; font-size:12px; min-height:16px;"></span>
+    </div>
+</div>
+
+<style>
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<script type="module">
+    import { db } from './config.js';
+    import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    window.abrirRecuperacao = () => {
+        document.getElementById('inputRecuperacao').value = '';
+        document.getElementById('statusRecuperacao').innerText = '';
+        document.getElementById('statusRecuperacao').style.color = '#888';
+        document.getElementById('btnEnviarRecuperacao').disabled = false;
+        document.getElementById('btnEnviarRecuperacao').innerText = 'ENVIAR SOLICITAÇÃO';
+        document.getElementById('modalRecuperacao').style.display = 'flex';
+    };
+
+    window.fecharRecuperacao = () => {
+        document.getElementById('modalRecuperacao').style.display = 'none';
+    };
+
+    // Fecha ao clicar fora do card
+    document.getElementById('modalRecuperacao').addEventListener('click', function(e) {
+        if (e.target === this) window.fecharRecuperacao();
+    });
+
+    window.enviarRecuperacao = async () => {
+        const contato = document.getElementById('inputRecuperacao').value.trim();
+        const status  = document.getElementById('statusRecuperacao');
+        const btn     = document.getElementById('btnEnviarRecuperacao');
+
+        if (!contato) {
+            status.style.color = '#e53935';
+            status.innerText = '⚠️ Preencha seu e-mail ou telefone.';
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerText = 'Enviando...';
+        status.style.color = '#888';
+        status.innerText = '';
+
+        try {
+            await addDoc(collection(db, "solicitacoes_recuperacao"), {
+                contato: contato,
+                data: new Date(),
+                status: "pendente"
+            });
+
+            status.style.color = '#27ae60';
+            status.innerText = '✅ Solicitação enviada! Entraremos em contato.';
+            btn.innerText = 'ENVIADO';
+
+            setTimeout(() => window.fecharRecuperacao(), 2500);
+        } catch (e) {
+            console.error(e);
+            status.style.color = '#e53935';
+            status.innerText = '❌ Erro ao enviar. Tente novamente.';
+            btn.disabled = false;
+            btn.innerText = 'ENVIAR SOLICITAÇÃO';
+        }
+    };
+</script>
  <script>
 // LIMPA O HISTÓRICO DO LOGIN
 if (window.history.replaceState) {

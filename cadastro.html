@@ -140,10 +140,23 @@ const senhaHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
 await addDoc(collection(db, "usuarios"), {
     nomeLoja: document.getElementById('nomeLoja').value.trim(),
-    email, senha: senhaHash,
-                    whatsapp: "+55" + document.getElementById('whats').value.trim(),
-                    status: "pendente", planoAtivo: selectedPlan, createdAt: new Date()
-                });
+    email,
+    senha: senhaHash,
+    whatsapp: "+55" + document.getElementById('whats').value.trim(),
+
+    status: "pendente",
+    planoAtivo: selectedPlan,
+
+    // DATA OFICIAL DE CADASTRO
+    dataCadastro: new Date().toISOString(),
+
+    // CONTROLE DE COBRANÇA
+    ultimoPagamento: new Date().toISOString(),
+    proximoVencimento: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+
+    // STATUS FINANCEIRO
+    pagamentoPendente: false
+});
    document.getElementById('app-container').innerHTML = `
     <div class="card">
         <i class="fas fa-check-circle" style="font-size:50px; margin-bottom:20px;"></i>
